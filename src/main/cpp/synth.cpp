@@ -10,7 +10,6 @@
 #include <map>
 #include <iomanip>
 using namespace std;
-#include "cmdline.h"
 
 extern int CBITS;
 extern int COSTS[];
@@ -805,15 +804,3 @@ void create_random_problem(int size) {
     create_problem(problem);
 }
 
-void init_synth(int argc, char **argv) {
-    ADD(GIVEN, 1);
-    parse_cmdline(cmditer_new(argc, argv));
-    ADD(COST_0, 1);
-    gen_add_coeffs(COST_0, COST_0, COST_1);
-    gen_add_coeffs(COST_0, COST_1, COST_2);
-    gen_mul_coeffs(COST_1, COST_1, COST_2);
-
-    subtract_set(COST_1, COST_0);
-    subtract_set(COST_2, COST_0);
-    subtract_set(COST_2, COST_1);
-}

@@ -202,14 +202,3 @@ int jnaCall(int num, int *consts, int buf_size, char *out_buffer) {
 }
 }
 
-#ifdef ACM_MAIN
-
-
-int main(int argc, char **argv) {
-    int inputs[] = {-11,-52, 1, 2, 4, 123};
-    char outputs[8000];
-    std:: cout << " returned: " << jnaCall(sizeof(inputs)/sizeof(inputs[0]), inputs, 8000,outputs);
-    return 0;
-}
-#endif
-

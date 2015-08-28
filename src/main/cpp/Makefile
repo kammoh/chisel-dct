@@ -1,24 +1,30 @@
-CC=gcc
-CXX=g++
-CXXFLAGS ?= -O3 -fomit-frame-pointer 
+UNAME := $(shell uname)
+CXXFLAGS = -Wno-c++11-compat-deprecated-writable-strings -O3 -fomit-frame-pointer 
 CFLAGS=$(CXXFLAGS)
-LINKFLAGS=
+ifeq ($(UNAME), Linux)
+LD_FLAGS = -shared -fPIC
+SUFFIX = so
+else ifeq ($(UNAME), Darwin)
+LD_FLAGS = -dynamiclib
+SUFFIX = dylib
+else # Windows?! TODO FIXME
+LD_FLAGS = -shared -fPIC
+SUFFIX = dll
+endif
 
-all: acm libacm.dylib
+OBJ_FILES = chains_util.o 21.costs.o acm.o ac1.o adder.o 
 
-debug: 
-	CXXFLAGS=-g $(MAKE) synth
+all: libacm
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
 clean:
-	rm -f *.o acm libacm.*
-acm: acm-main cmdline.o chains_util.o 21.costs.o synth.o ac1.o adder.o 
-	$(CXX) $(CXXFLAGS) -o acm acm.o cmdline.o chains_util.o 21.costs.o ac1.o adder.o $(LINKFLAGS)
+	rm -f $(OBJ_FILES) libacm.$(SUFFIX)
 
-acm-main: acm.cpp acm.h
-	$(CXX) $(CXXFLAGS) -DACM_MAIN -c -o acm.o acm.cpp
-
-acm-no-main: acm.cpp acm.h
-	$(CXX) $(CXXFLAGS) -c -o acm_nomain.o acm.cpp
-
-libacm.dylib: acm-no-main chains_util.o  21.costs.o synth.o
-	$(CXX) -dynamiclib chains_util.o 21.costs.o acm_nomain.o cmdline.o ac1.o adder.o -o libacm.dylib
+libacm: $(OBJ_FILES)
+	$(CXX) $(LD_FLAGS) -o $@.$(SUFFIX) $^
 

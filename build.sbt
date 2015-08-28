@@ -25,13 +25,26 @@ libraryDependencies  ++= Seq(
 
 libraryDependencies += "net.java.dev.jna" % "jna" % "4.1.0"
 
-compile <<= (compile in Compile) map { result => {
+lazy val makeCSharedLibTask = TaskKey[Int]("Build JNA C shared library")
+
+makeCSharedLibTask := {
   println("building C library")
   val pb = scala.sys.process.Process("""make -C src/main/cpp""")
-  val exitCode = pb.!
-  result
+  pb.!
 }
+
+compile in Compile := {
+  makeCSharedLibTask.value
+  (compile in Compile).value
 }
+
+run in Runtime := {
+  makeCSharedLibTask.value
+  (run in Runtime).value
+}
+
+
+
 //resolvers ++= Seq(
 //  // other resolvers here
 //  // if you want to use snapshot builds (currently 0.12-SNAPSHOT), use this.
