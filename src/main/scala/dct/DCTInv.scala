@@ -8,14 +8,12 @@ import Chisel._
 import ConstMult._
 
 object DCTInv extends DCT8 {
-  val shift = 6
-
-  def apply(n: Int, dWidth: Int, preShift1: Int, preShift2: Int)(input: Vec[SInt]): Vec[SInt] = {
+  def apply(n: Int, inWidth:Int, preShift1: Int, preShift2: Int, shift:Int)(input: Vec[SInt]): Vec[SInt] = {
     val round = SInt(1 << (shift - preShift1 - preShift2 -1))
     println(s"DCTInv with shift = $shift round =${round.litValue()}")
 
     def in(i: Int)(j: Int): SInt = {
-      val out = Wire(SInt(width = dWidth + 1))
+      val out = Wire(SInt(width = inWidth + 1))
       out := input(i + 8 * j)
       out
     }
@@ -39,12 +37,11 @@ object DCTInv extends DCT8 {
         }
         n * c + (j + n - cc) % n
       }).map(w(_)).zipWithIndex.filter(_._1 != 0).map {
-        case (const, idx) => trim((const *& in(i)(idx)) >> preShift1, dWidth + log2Floor(math.abs(const)) + 2 - preShift1)
+        case (const, idx) => trim((const *& in(i)(idx)) >> preShift1, inWidth + log2Floor(math.abs(const)) + 2 - preShift1)
       }.reduce(_ +& _)
     }))
     })
 
-    type S = PartialFunction[Int, SInt]
     val b = Vec(Array.tabulate(n) { i => Vec(Array.tabulate(4) {
       case 0 => a(i)(6) +& a(i)(4)
       case 1 => a(i)(7) +& a(i)(5)
@@ -71,10 +68,7 @@ object DCTInv extends DCT8 {
 }
 
 class DCTInv extends DCTModuleImpl {
-
-  val shift: Int = DCTInv.shift
-
-  def singleStage = DCTInv(n, dWidth, params(InvPreShift1), params(InvPreShift2))
+  def singleStage = DCTInv(n = n, inWidth = inWidth, preShift1, preShift2, shift = invShift)
 
   def firstIter = (in: Vec[SInt]) => in
 
@@ -85,6 +79,6 @@ class DCTInv extends DCTModuleImpl {
         Mux(word(msb,8).orR(), SInt(127), word(8,1).toSInt))
     }
     else
-      trim(word >> 1, dWidth)
+      trim(word >> 1, outWidth)
   }))
 }

@@ -5,33 +5,45 @@ import dct.Implementation._
 
 
 trait TopLevelParameters extends UsesParameters {
-  val dWidth = params(DataWidth)
   val n = params(N)
   val impl = params(Impl)
-  val doSaturate = params(Saturate)
-  val preShift1 = params(PreShift1)
-  val preShift2 = params(PreShift2)
+  val inWidth = params(InWidth)
+  val outWidth = params(OutWidth)
 }
 
-
-class DCT8SIntIO extends Bundle with TopLevelParameters {
-  val in = Decoupled(Vec.fill(n*n)(SInt(INPUT, width = dWidth))).flip()
-  val out = Decoupled(Vec.fill(n*n)(SInt(INPUT, width = dWidth)))
+trait TopLevelModuleParameters extends Module with TopLevelParameters{
+  def modParams(dCTModule: TopLevelModuleParameters) =  (
+    if(Driver.parStack.isEmpty) Parameters.empty
+    else Driver.parStack.top).
+    alter((pname,site,here,up) => pname match {
+    case ModName => this.getClass.getSimpleName
+  })
+  implicit override lazy val params = modParams(this)
 }
 
+class DCT8SIntIO(n:Int, inWidth: Int, outWidth: Int) extends Bundle {
+  val in = Decoupled(Vec.fill(n*n)(SInt(INPUT, width = inWidth))).flip()
+  val out = Decoupled(Vec.fill(n*n)(SInt(INPUT, width = outWidth)))
+}
 
-trait DCTModule extends Module with TopLevelParameters {
-  ConstMult.ConstMult.OptimizeMCM = params(OptimizeMCM)
-  val io = new DCT8SIntIO
+trait DCTModule extends Module with TopLevelModuleParameters {
+  ConstMult.ConstMult.OptimizeMCM = params(OptimizeMCM) // TODO
+  val fwdShift = params(FwdShift)
+  val invShift = params(InvShift)
 
+  val io = new DCT8SIntIO(n,inWidth, outWidth)
 }
 
 trait DCTModuleImpl extends DCTModule {
-  val shift: Int
   def singleStage: Vec[SInt] => Vec[SInt]
   def firstIter: Vec[SInt] => Vec[SInt]
   def secondIter: Vec[SInt] => Vec[SInt]
 
+  val doSaturate = params(Saturate)
+  val preShift1 = params(PreShift1)
+  val preShift2 = params(PreShift2)
+
+  println(s"Implementing ${this.getClass.getSimpleName} as $impl inWidth=$inWidth outWidth=$outWidth")
   if(impl == Iterative) {
     val done = Reg(init = Bool(false), next = Reg(init = Bool(false), next = io.in.fire()) && !io.out.fire())
     val ready = Reg(init = Bool(true), next = !io.in.fire() && io.in.ready)
@@ -41,7 +53,7 @@ trait DCTModuleImpl extends DCTModule {
 
     val fire = io.in.fire()
 
-    val reg = Reg(Vec.fill(n*n)(SInt(width = io.out.bits(0).getWidth() + 1)))
+    val reg = Reg(Vec.fill(n*n)(SInt(width = outWidth + 1)))
 
     val out1 = singleStage( Mux(fire, io.in.bits, reg))
 
@@ -67,5 +79,4 @@ class DCTB2B extends DCTModule {
   fwd.in <> io.in
   inv.in <> fwd.out
   io.out <> inv.out
-
 }

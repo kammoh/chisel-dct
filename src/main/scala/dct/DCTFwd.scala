@@ -5,14 +5,12 @@ import ConstMult._
 
 
 object DCTFwd extends DCT8 {
-  val shift = 8
-
-  def apply(n: Int, dWidth: Int, preShift1: Int, preShift2: Int)(input: Vec[SInt]): Vec[SInt] = {
+  def apply(n: Int, inWidth: Int, preShift1: Int, preShift2: Int, shift: Int)(input: Vec[SInt]): Vec[SInt] = {
     //    println(s"shift = $shift")
     val round = SInt(1 << (shift - preShift1) - 1) // TODO CHECK
 
     def inTrans(i: Int)(j: Int): SInt = {
-      val out = Wire(SInt(width = dWidth + 1))
+      val out = Wire(SInt(width = inWidth + 1))
       out := input(i * 8 + j)
       out
     }
@@ -41,7 +39,7 @@ object DCTFwd extends DCT8 {
       }).zipped.map((w, s) => trim((w *& s) >> preShift1, s.getWidth() + log2Floor(math.abs(w)) + 1 - preShift1)).
         foldLeft(round)((sum, next) => {
         addsub += 1
-        trim((next >> preShift2) +& sum, b_width + dWidth - 1 - preShift2 - preShift1)
+        trim((next >> preShift2) +& sum, b_width + inWidth - 1 - preShift2 - preShift1)
       }) >> (shift - preShift1 - preShift2)
 
     })
@@ -50,9 +48,7 @@ object DCTFwd extends DCT8 {
 }
 
 class DCTFwd extends DCTModuleImpl {
-  val shift: Int = DCTFwd.shift
-
-  def singleStage = DCTFwd(n, dWidth, preShift1, preShift2)
+  def singleStage = DCTFwd(n = n, inWidth = inWidth, preShift1, preShift2, shift = fwdShift)
 
   def firstIter = (in: Vec[SInt]) => in
 

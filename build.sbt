@@ -44,7 +44,6 @@ run in Runtime := {
 }
 
 
-
 //resolvers ++= Seq(
 //  // other resolvers here
 //  // if you want to use snapshot builds (currently 0.12-SNAPSHOT), use this.
