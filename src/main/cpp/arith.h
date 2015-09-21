@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 inline coeff_t fundamental(coeff_t z) {
     ASSERT(z > (coeff_t)0);
     while((z & (coeff_t)1) == 0) 

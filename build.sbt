@@ -1,5 +1,3 @@
-import scala.sys.process._
-
 name := "dct"
 
 version := "1.0"
@@ -24,6 +22,7 @@ libraryDependencies  ++= Seq(
 )
 
 libraryDependencies += "net.java.dev.jna" % "jna" % "4.1.0"
+libraryDependencies += "org.scalafx" %% "scalafx" % "8.0.40-R8"
 
 lazy val makeCSharedLibTask = TaskKey[Int]("Build JNA C shared library")
 
@@ -42,7 +41,6 @@ run in Runtime := {
   makeCSharedLibTask.value
   (run in Runtime).value
 }
-
 
 //resolvers ++= Seq(
 //  // other resolvers here

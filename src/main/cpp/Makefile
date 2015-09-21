@@ -1,9 +1,9 @@
 UNAME := $(shell uname)
-CXXFLAGS = -Wno-c++11-compat-deprecated-writable-strings -O3 -fomit-frame-pointer -g0 
-CFLAGS=$(CXXFLAGS)
+CXXFLAGS = -O3 -fomit-frame-pointer -g0 #-Wno-c++11-compat-deprecated-writable-strings  
 LIB_PREFIX=lib
 ifeq ($(UNAME), Linux)
 LD_FLAGS = -shared -fPIC
+CXXFLAGS += -fPIC
 LIB_SUFFIX = so
 else ifeq ($(UNAME), Darwin)
 LD_FLAGS = -dynamiclib
@@ -13,6 +13,8 @@ LD_FLAGS = -shared -fPIC
 LIB_SUFFIX = dll
 LIB_PREFIX =
 endif
+
+CFLAGS=$(CXXFLAGS)
 
 OBJ_FILES = chains_util.o 21.costs.o acm.o ac1.o adder.o 
 

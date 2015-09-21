@@ -40,6 +40,7 @@ Tester(dut, isTrace = isTrace) {
   val startTime = Driver.elapsedTime
 
   var testsDone = 0
+  var t0 = t
   for (test <- 0 until numTests; if ok) {
     if(!isDebug){
       progressBar(test.toDouble/(numTests - 1).toDouble)
@@ -108,7 +109,7 @@ Tester(dut, isTrace = isTrace) {
     testsDone +=1
   }
 
-  println(s"${Console.MAGENTA} Completed $testsDone tests in ${(Driver.elapsedTime - startTime)/1e3} seconds${Console.RESET}")
+  println(s"${Console.MAGENTA} Completed $testsDone tests ${t-t0} cycles in ${(Driver.elapsedTime - startTime)/1e3} seconds${Console.RESET}")
 
   def rmse(psnr: Double) = pow(10.0, log10(maxVal) - (psnr /20))
 

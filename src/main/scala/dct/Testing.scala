@@ -47,8 +47,10 @@ class ArgsParam(args: Array[String]) {
       if (arg.startsWith("--")) {
         if (local.contains(arg))
           prevLocal = true
-        else
+        else {
           prevLocal = false
+          out += arg
+        }
       }
       else if (prevLocal)
         prevLocal = false
@@ -79,7 +81,26 @@ object TestGenerator extends App {
 
     val gen = () => Class.forName(PROJECT + "." + "DCT" + mode).newInstance().asInstanceOf[DCTModule]
 
+    println(s"PARAMS = ${(params.nonProcessed ++ chiselArgs).toList}")
     chiselMain.run(params.nonProcessed ++ chiselArgs, gen, (dut: DCTModule) =>
       new DctTester(dut, mode, numTests = numTests, isDebug = debug, isTrace = debug))
+  }
+}
+
+import scalafx.application.JFXApp
+import scalafx.application.JFXApp.PrimaryStage
+import scalafx.geometry.Insets
+import scalafx.scene.Scene
+import scalafx.scene.control.Label
+import scalafx.scene.layout.BorderPane
+
+object HelloSBT extends JFXApp {
+  stage = new PrimaryStage {
+    scene = new Scene {
+      root = new BorderPane {
+        padding = Insets(25)
+        center = new Label("Hello SBT")
+      }
+    }
   }
 }
